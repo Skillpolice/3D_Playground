@@ -8,17 +8,27 @@ public class Ball : MonoBehaviour
     GameManager gameManager;
 
 
-    public int Points;
+    public int points;
 
-    private void Start()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
+    private void Start()
+    {
+        gameManager = GameManager.Instance;
+    }
+
     private void ResetPosition()
     {
         //TODO random position
-        transform.position = new Vector3(0, 10, 0);
+        float randomX = Random.Range(-5, 10);
+        float randomY = Random.Range(1, 10);
+        float randomZ = Random.Range(-5, 10);
+
+        transform.position = new Vector3(randomX, randomY, randomZ);
         rb.velocity = Vector3.zero;
+
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -27,11 +37,13 @@ public class Ball : MonoBehaviour
         if (collision.gameObject.CompareTag("Target"))
         {
             //TODO add points
+            gameManager.AddPoints(points);
             ResetPosition();
         }
         else if (collision.gameObject.CompareTag("Ground"))
         {
             //TODO remove points
+            gameManager.AddPoints(-points);
             ResetPosition();
         }
     }

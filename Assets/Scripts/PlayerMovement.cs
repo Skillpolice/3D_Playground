@@ -6,6 +6,9 @@ public class PlayerMovement : MonoBehaviour
 {
     Rigidbody rb;
 
+    private static PlayerMovement instance;
+    public static PlayerMovement Instance { get { return instance; } }
+
     [Header("Movement")]
     [SerializeField] private float speed = 10;
     [SerializeField] private float rotationSpeed = 1;
@@ -17,14 +20,24 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float objRadius = 1f;
     [SerializeField] private float maxPushForce = 1f;
     [SerializeField] private float pushHeight = 15f;
-    // [SerializeField] private float pushForceStep = 15f;
+    [SerializeField] private float forceUpSpeed = 1;
+
+
 
     float pushForce;
     bool isGoingUp;
 
-    void Start()
+    float time;
+
+
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        instance = this;
+    }
+    void Start()
+    {
+
     }
 
     private void Update()
@@ -38,28 +51,31 @@ public class PlayerMovement : MonoBehaviour
         {
             pushForce = 0;
             isGoingUp = true;
+
+            time = (3 * Mathf.PI) / 2;
         }
 
         if (Input.GetMouseButton(0))
         {
-            if (isGoingUp)
-            {
-                pushForce += maxPushForce * Time.deltaTime;
-                if (pushForce >= maxPushForce)
-                {
-                    isGoingUp = false;
-                }
-            }
-            else
-            {
-                pushForce -= maxPushForce * Time.deltaTime;
-                if (pushForce <= 0)
-                {
-                    isGoingUp = true;
-                }
-            }
+            //if (isGoingUp)
+            //{
+            //    pushForce += maxPushForce * Time.deltaTime;
+            //    if (pushForce >= maxPushForce)
+            //    {
+            //        isGoingUp = false;
+            //    }
+            //}
+            //else
+            //{
+            //    pushForce -= maxPushForce * Time.deltaTime;
+            //    if (pushForce <= 0)
+            //    {
+            //        isGoingUp = true;
+            //    }
+            //}
 
-            print("pushForce: " + pushForce);
+            time += Time.deltaTime;
+            pushForce = ((1 + Mathf.Sin((1 / forceUpSpeed) * time)) / 2) * maxPushForce;
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -73,9 +89,24 @@ public class PlayerMovement : MonoBehaviour
                 forceBallDirection.y = pushHeight;
                 colRb.AddForce(forceBallDirection.normalized * pushForce, ForceMode.Impulse);
             }
+            pushForce = 0;
         }
+
     }
 
+    public float GetForcePercentage()
+    {
+        return pushForce / maxPushForce;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            transform.position = new Vector3(0, 10, 0);
+            rb.velocity = Vector3.zero;
+        }
+    }
 
     void FixedUpdate()
     {
